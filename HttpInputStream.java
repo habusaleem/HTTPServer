@@ -3,14 +3,22 @@ import java.net.*;
 import java.util.*;
 
 public class HttpInputStream extends BufferedInputStream {
+<<<<<<< HEAD
    protected String method, path, queryString;
    protected float version;
    protected Hashtable headers = new Hashtable();
+=======
+	protected String method, path, queryString;
+	protected float version;
+	protected Hashtable headers = new Hashtable();
+	protected StringBuffer body = new StringBuffer();
+>>>>>>> master
 	
    public HttpInputStream (InputStream in) {
       super (in);
    }
 	
+<<<<<<< HEAD
    // returns request for logging purposes
    public String readRequest () throws IOException { // added "String" 
       String request = readLine();
@@ -39,6 +47,36 @@ public class HttpInputStream extends BufferedInputStream {
       }
       return request; // added
    }
+=======
+	public void readRequest () throws IOException {
+		String request = readLine();
+		if (request == null) {
+			throw new HttpException (HTTP.STATUS_BAD_REQUEST, "Null Query");
+		}
+		StringTokenizer parts = new StringTokenizer (request);
+		try {
+			parseMethod (parts.nextToken());
+			parseRequest (parts.nextToken());
+		} catch (NoSuchElementException ex) {
+			throw new HttpException (HTTP.STATUS_BAD_REQUEST, request);
+		}
+		if (parts.hasMoreTokens()) {
+			parseVersion (parts.nextToken());
+		}
+		else {
+			version = 0.9f;
+		}
+		if ((version < 1.0f) && (method == HTTP.METHOD_HEAD)) {
+			throw new HttpException (HTTP.STATUS_NOT_ALLOWED, method);
+		}
+		if (version >= 1.0f) {
+			readHeaders();
+		}
+		if (method == HTTP.METHOD_POST) {
+			readBody();
+		}
+	}
+>>>>>>> master
 	
    protected void parseMethod (String method) throws HttpException {
       if (method.equalsIgnoreCase(HTTP.METHOD_GET))
@@ -88,6 +126,7 @@ public class HttpInputStream extends BufferedInputStream {
       }
    }
 	
+<<<<<<< HEAD
    public String readLine () throws IOException {
       StringBuffer line = new StringBuffer();
       int c;
@@ -97,6 +136,41 @@ public class HttpInputStream extends BufferedInputStream {
          -- pos;
       return ((c == -1) && (line.length() == 0)) ? null : line.toString();
    }
+=======
+	// a method that reads request body
+	protected void readBody () throws IOException {
+		int contentLength;
+		try {
+			// get content length from request header
+			contentLength = Integer.parseInt(getHeader("content-length"));
+		} catch (NumberFormatException e) {
+			// if not number, through exception
+			throw new HttpException (HTTP.STATUS_BAD_REQUEST, "Invalid content-length");
+		}
+		int c;
+		// read as many chars as request length header
+		for (int i = contentLength; i>0; i--) {
+			c = read();
+			if (c == -1)
+				break;
+			else
+				// append each char to body variable
+				this.body.append((char) c);
+		}
+		
+	}
+	
+	
+	public String readLine () throws IOException {
+		StringBuffer line = new StringBuffer();
+		int c;
+		while (((c = read()) != -1) && (c != '\n') && (c != '\r'))
+			line.append((char) c);
+		if ((c == '\r') && ((c = read()) != '\n') && (c != -1) )
+			-- pos;
+		return ((c == -1) && (line.length() == 0)) ? null : line.toString();
+	}
+>>>>>>> master
 	
    public String getMethod() {
       return method;
@@ -118,8 +192,19 @@ public class HttpInputStream extends BufferedInputStream {
       return (String) headers.get(name.toLowerCase());
    }
 	
+<<<<<<< HEAD
    public Enumeration getHeaderNames() {
       return headers.keys();
    }
+=======
+	public Enumeration getHeaderNames() {
+		return headers.keys();
+	}
+	
+	// a method that return request body variable
+	public String getBody() {
+		return this.body.toString();
+	}
+>>>>>>> master
 
 }

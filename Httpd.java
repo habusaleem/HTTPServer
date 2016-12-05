@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Httpd implements Runnable {
 	
+<<<<<<< HEAD
    public static void main (String args[]) throws IOException {
       ServerSocket server = new ServerSocket (HTTP.PORT);
       System.out.println("Server running on port: "+ HTTP.PORT);
@@ -14,6 +15,19 @@ public class Httpd implements Runnable {
          reThread.start();
       }
    }
+=======
+	public static void main (String args[]) throws IOException {
+		ServerSocket server = new ServerSocket (HTTP.PORT);
+		System.out.println("Server running on port: "+ HTTP.PORT);
+		System.out.println("Web root directory is: " + HTTP.getRootDirectory());
+		while (true) {
+			Socket client = server.accept();
+			Httpd httpd = new Httpd(client);
+			ReThread reThread = new ReThread(httpd);
+			reThread.start();
+		}
+	}
+>>>>>>> master
 	
    protected Socket client;
    protected Logger logger; //added
@@ -53,6 +67,7 @@ public class Httpd implements Runnable {
       }
    }
 	
+<<<<<<< HEAD
    protected HttpProcessor getProcessor (HttpInputStream httpIn) {
       try {
          String request = httpIn.readRequest(); //added return
@@ -74,5 +89,26 @@ public class Httpd implements Runnable {
          return new HttpException (HTTP.STATUS_INTERNAL_ERROR, "<PRE>" + trace + "</PRE>");
       }
    }
+=======
+	protected HttpProcessor getProcessor (HttpInputStream httpIn) {
+		try {
+			httpIn.readRequest();
+			if (httpIn.getPath().contains(HTTP.CGI_BIN)){
+				return  new HttpCGI (httpIn, client.getInetAddress());
+				
+			}
+			else if (httpIn.getPath().contains(HTTP.CLASS_BIN))
+				return new HttpClass (httpIn);
+			else 
+				return new HttpFile (httpIn);
+		} catch (HttpException ex) {
+			return ex;
+		} catch (Exception ex) {
+			StringWriter trace = new StringWriter ();
+			ex.printStackTrace(new PrintWriter(trace, true));
+			return new HttpException (HTTP.STATUS_INTERNAL_ERROR, "<PRE>" + trace + "</PRE>");
+		}
+	}
+>>>>>>> master
 
 }
