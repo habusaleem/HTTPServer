@@ -6,6 +6,7 @@ public class HttpInputStream extends BufferedInputStream {
 	protected String method, path, queryString;
 	protected float version;
 	protected Hashtable headers = new Hashtable();
+	protected StringBuffer body = new StringBuffer();
 	
 	public HttpInputStream (InputStream in) {
 		super (in);
@@ -34,6 +35,9 @@ public class HttpInputStream extends BufferedInputStream {
 		}
 		if (version >= 1.0f) {
 			readHeaders();
+		}
+		if (method == HTTP.METHOD_POST) {
+			readBody();
 		}
 	}
 	
@@ -83,6 +87,30 @@ public class HttpInputStream extends BufferedInputStream {
 		}
 	}
 	
+	// a method that reads request body
+	protected void readBody () throws IOException {
+		int contentLength;
+		try {
+			// get content length from request header
+			contentLength = Integer.parseInt(getHeader("content-length"));
+		} catch (NumberFormatException e) {
+			// if not number, through exception
+			throw new HttpException (HTTP.STATUS_BAD_REQUEST, "Invalid content-length");
+		}
+		int c;
+		// read as many chars as request length header
+		for (int i = contentLength; i>0; i--) {
+			c = read();
+			if (c == -1)
+				break;
+			else
+				// append each char to body variable
+				this.body.append((char) c);
+		}
+		
+	}
+	
+	
 	public String readLine () throws IOException {
 		StringBuffer line = new StringBuffer();
 		int c;
@@ -115,6 +143,11 @@ public class HttpInputStream extends BufferedInputStream {
 	
 	public Enumeration getHeaderNames() {
 		return headers.keys();
+	}
+	
+	// a method that return request body variable
+	public String getBody() {
+		return this.body.toString();
 	}
 
 }

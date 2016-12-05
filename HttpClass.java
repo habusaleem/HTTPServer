@@ -5,7 +5,7 @@ public class HttpClass implements HttpProcessor {
 	protected HttpClassProcessor processor;
 	
 	public HttpClass (HttpInputStream in) throws IOException, IllegalAccessException, InstantiationException {
-		String classPath = in.getPath().substring(HTTP.CLASS_BIN.length());
+		String classPath = HTTP.removeRootFromFileName(in.getPath()).substring(HTTP.CLASS_BIN.length());
 		int idx = classPath.indexOf('/');
 		String className = (idx < 0) ? classPath : classPath.substring(0, idx);
 		try {

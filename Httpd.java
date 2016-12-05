@@ -44,9 +44,11 @@ public class Httpd implements Runnable {
 	protected HttpProcessor getProcessor (HttpInputStream httpIn) {
 		try {
 			httpIn.readRequest();
-			if (httpIn.getPath().startsWith(HTTP.CGI_BIN))
+			if (httpIn.getPath().contains(HTTP.CGI_BIN)){
 				return  new HttpCGI (httpIn, client.getInetAddress());
-			else if (httpIn.getPath().startsWith(HTTP.CLASS_BIN))
+				
+			}
+			else if (httpIn.getPath().contains(HTTP.CLASS_BIN))
 				return new HttpClass (httpIn);
 			else 
 				return new HttpFile (httpIn);

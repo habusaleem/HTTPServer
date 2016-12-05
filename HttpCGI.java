@@ -11,7 +11,6 @@ public class HttpCGI implements HttpProcessor, Runnable {
 	public HttpCGI (HttpInputStream in, InetAddress ip) throws IOException {
 		this.in = in;
 		extractScriptName();
-		System.out.println(cgiScript.getAbsolutePath());
 		if ((!cgiScript.exists()))
 			throw new HttpException (HTTP.STATUS_NOT_FOUND, "CGI <TT>" + scriptName +"</TT> not found.");
 		if ((!cgiScript.isFile()))
@@ -28,8 +27,9 @@ public class HttpCGI implements HttpProcessor, Runnable {
 		initEnv (ip);
 	}
 	
-	protected void extractScriptName () {
+	protected void extractScriptName () throws IOException {
 		String path = in.getPath();
+		path = HTTP.removeRootFromFileName(path);
 		int pathIdx = path.indexOf('/', 1);
 		if ((pathIdx >= 0) && ((pathIdx = path.indexOf('/',  1 + pathIdx)) >= 0)) {
 			scriptName = path.substring(0, pathIdx);
@@ -37,18 +37,21 @@ public class HttpCGI implements HttpProcessor, Runnable {
 		} else {
 			scriptName = path;
 		}
-		cgiScript = new File (HTTP.SERVER_LOCATION, HTTP.translateFilename(scriptName).substring(1));
+		cgiScript = new File (HTTP.getServerLocation(in.getPath()), HTTP.translateFilename(scriptName).substring(1));
 	}
 	
 	protected String[] env;
 	
-	protected void initEnv (InetAddress ip) {
+	protected void initEnv (InetAddress ip) throws IOException {
 		Vector environment = (Vector) HTTP.environment.clone();
 		environment.addElement("SERVER_PROTOCOL=" + "HTTP/" + in.getVersion());
 		environment.addElement("REQUEST_METHOD=" + in.getMethod());
+		environment.addElement("DOCUMENT_ROOT=" + HTTP.getServerLocation(in.getPath()).getPath());
 		if (pathInfo != null) {
 			environment.addElement("PATH_INFO=" + pathInfo);
-			environment.addElement("PATH_TRANSLATED=" + new File (HTTP.HTML_ROOT, HTTP.translateFilename(pathInfo)));
+			//environment.addElement("PATH_TRANSLATED=" + new File (HTTP.HTML_ROOT, HTTP.translateFilename(pathInfo)));
+			environment.addElement("PATH_TRANSLATED=" + new File (HTTP.getHtmlRoot(in.getPath()), HTTP.translateFilename(pathInfo)));
+
 		}
 		environment.addElement("SCRIPT_NAME=" + scriptName);
 		environment.addElement("QUERY_STRING=" + in.getQueryString());
@@ -67,8 +70,10 @@ public class HttpCGI implements HttpProcessor, Runnable {
 			String name = (String) headerNames.nextElement();
 			environment.addElement("HTTP_" + name.toUpperCase().replace('-', '_') + "=" + in.getHeader(name));
 		}
-		env = new String [environment.size()];
+		env = new String [environment.size()+1];
 		environment.copyInto(env);
+		// and extra environment variable containing request body
+		env[env.length-1] = "BODY=";
 	}
 	
 	protected static Runtime jvm = Runtime.getRuntime();
@@ -76,16 +81,29 @@ public class HttpCGI implements HttpProcessor, Runnable {
 	
 	public void processRequest (HttpOutputStream out) throws IOException {
 		ReThread drain = null;
+		
 		try {
 			if (in.getMethod() != HTTP.METHOD_POST) {
+				// if get request, body should be empty
+				env[env.length-1] = "BODY=";
 				cgi = jvm.exec(cgiScript.getPath(), env);
+				//cgi = jvm.exec(command, env);
 				cgi.getOutputStream().close();
 				out.write(cgi.getInputStream());
+				
 			} else {
+				//command[command.length-1] = "Body: "+in.getBody();
+				//System.out.println("Body: "+command[command.length-1]);
+				// if post request, get request body and add it to the environment array
+				env[env.length-1] = "BODY="+in.getBody();
 				cgi = jvm.exec(cgiScript.getPath(), env);
-				drain = new ReThread (this);
-				drain.start();
+				//cgi = jvm.exec(command, env);
+				//drain = new ReThread (this);
+				//drain.start();
+				//System.out.println("CGI Running");
+				cgi.getOutputStream().close();
 				out.write(cgi.getInputStream());
+
 			}
 		} catch (IOException ex) {
 			StringWriter trace = new StringWriter();

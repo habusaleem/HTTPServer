@@ -8,8 +8,9 @@ public class HTTP {
 	public static final String SERVER_INFO = "CSC583-HTTPD/1.0";
 	public static final String CGI_BIN = "/cgi-bin/";
 	public static final String CLASS_BIN = "/class-bin/";
-	public static final File SERVER_LOCATION = new File (System.getProperty("user.dir"));
-	public static final File HTML_ROOT = new File (SERVER_LOCATION, "html");
+	//public static final File SERVER_LOCATION = new File ("C:\\Web");
+	//public static final File HTML_ROOT = new File (SERVER_LOCATION, "html");
+	public static final String SERVER_ROOT="C:\\Web\\";
 	public static final int PORT = 80;
 	public static final String DEFAULT_INDEX = "index.html";
 	
@@ -27,6 +28,7 @@ public class HTTP {
 	public static final int STATUS_NOT_ALLOWED = 405;
 	public static final int STATUS_INTERNAL_ERROR = 500;
 	public static final int STATUS_NOT_IMPLEMENTED = 501;
+	
 	
 	public static String getCodeMessage (int code) {
 		switch (code) {
@@ -47,7 +49,7 @@ public class HTTP {
 	protected static final Vector environment = new Vector();
 	static {
 		environment.addElement("SERVER_SOFTWARE=" + SERVER_INFO);
-		environment.addElement("DOCUMENT_ROOT=" + HTML_ROOT.getPath());
+		//environment.addElement("DOCUMENT_ROOT=" + HTML_ROOT.getPath());
 		try {
 			environment.addElement("SERVER_NAME=" + InetAddress.getLocalHost().getHostName());
 		} catch (UnknownHostException ex) {
@@ -88,8 +90,9 @@ public class HTTP {
 		return from;
 	}
 	
-	public static String translateFilename (String filename) {
+	public static String translateFilename (String filename) throws IOException {
 		StringBuffer result = new StringBuffer();
+		filename = removeRootFromFileName(filename);
 		int idx, odx = 0;
 		while ((idx = filename.indexOf('/', odx)) != -1) {
 			result.append(filename.substring(odx, idx)).append (File.separator);
@@ -132,6 +135,40 @@ public class HTTP {
 		return (type != null) ? type : "text/plain";
 	}
 	
+	// a method to set the html root location depending on whether a specific document root exists or not
+	public static File getHtmlRoot (String path) throws IOException {
+		return new File (getServerLocation(path), "html");
+	}
+	// a method to set the root server location depending on whether a specific document root exists or not
+	public static File getServerLocation (String path) throws IOException {
+		if (documentRootExists(path))
+			return new File (SERVER_ROOT + path.substring(path.indexOf("/")+1, path.indexOf("/", path.indexOf("/")+1)));
+		else
+			return new File (SERVER_ROOT);
+	}
+	// a method to remove the document root from file path
+	public static String removeRootFromFileName (String path) throws IOException {
+		if (documentRootExists(path))
+			return path.replace("/"+path.substring(path.indexOf("/")+1, path.indexOf("/", path.indexOf("/")+1)), "");
+		else
+			return path;
+	}
 	
-
+	// a method to check if a requested document root exists
+	protected static boolean documentRootExists (String path) throws IOException {
+		// open the config file
+		File documentRoots = new File ("documentRoots.txt");
+		BufferedReader in = new BufferedReader (new FileReader(documentRoots));
+		// get the string between // in the requested path
+		String requestedDocumentRoot = path.substring(path.indexOf("/")+1, path.indexOf("/", path.indexOf("/")+1));
+		String documentRootFromConfig;
+		while ((documentRootFromConfig = in.readLine()) != null) {
+			if (requestedDocumentRoot.equalsIgnoreCase(documentRootFromConfig)){
+				return true;
+			}
+				
+		}
+		return false;
+	}
+	
 }

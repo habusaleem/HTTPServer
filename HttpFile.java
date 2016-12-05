@@ -8,7 +8,7 @@ public class HttpFile implements HttpProcessor {
 		if (in.getMethod() == HTTP.METHOD_POST)
 			throw new HttpException (HTTP.STATUS_NOT_ALLOWED, "<TT>" + in.getMethod() +
 					" " + in.getPath() + "</TT>");
-		file = new File (HTTP.HTML_ROOT, HTTP.translateFilename(in.getPath()));
+		file = new File (HTTP.getHtmlRoot(in.getPath()), HTTP.translateFilename(in.getPath()));
 		if (in.getPath().endsWith("/"))
 			file = new File (file, HTTP.DEFAULT_INDEX);
 		if (!file.exists())
@@ -27,6 +27,7 @@ public class HttpFile implements HttpProcessor {
 			FileInputStream in = new FileInputStream (file);
 			out.write(in);
 			in.close();
+			
 		}
 	}
 }
