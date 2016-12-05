@@ -7,6 +7,7 @@ public class Httpd implements Runnable {
 	public static void main (String args[]) throws IOException {
 		ServerSocket server = new ServerSocket (HTTP.PORT);
 		System.out.println("Server running on port: "+ HTTP.PORT);
+		System.out.println("Web root directory is: " + HTTP.getRootDirectory());
 		while (true) {
 			Socket client = server.accept();
 			Httpd httpd = new Httpd(client);

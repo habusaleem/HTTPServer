@@ -10,7 +10,7 @@ public class HTTP {
 	public static final String CLASS_BIN = "/class-bin/";
 	//public static final File SERVER_LOCATION = new File ("C:\\Web");
 	//public static final File HTML_ROOT = new File (SERVER_LOCATION, "html");
-	public static final String SERVER_ROOT="C:\\Web\\";
+	//public static final String SERVER_ROOT="C:\\Web\\";
 	public static final int PORT = 80;
 	public static final String DEFAULT_INDEX = "index.html";
 	
@@ -142,9 +142,9 @@ public class HTTP {
 	// a method to set the root server location depending on whether a specific document root exists or not
 	public static File getServerLocation (String path) throws IOException {
 		if (documentRootExists(path))
-			return new File (SERVER_ROOT + path.substring(path.indexOf("/")+1, path.indexOf("/", path.indexOf("/")+1)));
+			return new File (getRootDirectory() + path.substring(path.indexOf("/")+1, path.indexOf("/", path.indexOf("/")+1)));
 		else
-			return new File (SERVER_ROOT);
+			return new File (getRootDirectory());
 	}
 	// a method to remove the document root from file path
 	public static String removeRootFromFileName (String path) throws IOException {
@@ -169,6 +169,11 @@ public class HTTP {
 				
 		}
 		return false;
+	}
+	
+	// a method to get the absolute root directory of the server (i.e C:\)
+	public static String getRootDirectory() {
+		return File.listRoots()[0].getAbsolutePath()+"Web"+File.separator;
 	}
 	
 }
