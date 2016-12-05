@@ -17,8 +17,11 @@ public class Httpd implements Runnable {
 	}
 	
 	protected Socket client;
+   protected Logger logger;
+
 	public Httpd (Socket client) {
 		this.client = client;
+      this.logger = new Logger(client);
 	}
 	
 	public void run () {
@@ -26,11 +29,19 @@ public class Httpd implements Runnable {
 			InputStream in = client.getInputStream();
 			HttpInputStream httpIn = new HttpInputStream (in);
 			HttpProcessor processor = getProcessor (httpIn);
-			OutputStream out = client.getOutputStream();
-			HttpOutputStream httpOut = new HttpOutputStream (out, httpIn);
-			processor.processRequest (httpOut);
-			httpOut.flush();
-		} catch (IOException ex) {
+		   if(processor instanceof HttpException) {
+            logger.setStatus( ((HttpException) processor).getCode() );
+            logger.addLog(0);
+         }
+         else {
+            OutputStream out = client.getOutputStream();
+            HttpOutputStream httpOut = new HttpOutputStream (out, httpIn);
+            long bytes = processor.processRequest (httpOut);
+            logger.setStatus(HTTP.STATUS_OKAY); // if didn't throw exception, assume OKAY
+            logger.addLog(bytes);
+            httpOut.flush();
+         }		
+      } catch (IOException ex) {
 			ex.printStackTrace();
 		} finally {
 			try {
@@ -44,6 +55,8 @@ public class Httpd implements Runnable {
 	
 	protected HttpProcessor getProcessor (HttpInputStream httpIn) {
 		try {
+         String request = httpIn.readRequest();
+         this.logger.setRequest(request);
 			httpIn.readRequest();
 			if (httpIn.getPath().contains(HTTP.CGI_BIN)){
 				return  new HttpCGI (httpIn, client.getInetAddress());

@@ -19,5 +19,6 @@ public class HttpClass implements HttpProcessor {
 	
 	public void processRequest (HttpOutputStream out) throws IOException {
 		processor.processRequest (out);
+      return 0; // not sure how to get file size
 	}
 }

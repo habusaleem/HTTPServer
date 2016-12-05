@@ -79,7 +79,7 @@ public class HttpCGI implements HttpProcessor, Runnable {
 	protected static Runtime jvm = Runtime.getRuntime();
 	protected Process cgi;
 	
-	public void processRequest (HttpOutputStream out) throws IOException {
+	public long processRequest (HttpOutputStream out) throws IOException {
 		ReThread drain = null;
 		
 		try {
@@ -116,6 +116,7 @@ public class HttpCGI implements HttpProcessor, Runnable {
 			if (cgi != null)
 				cgi.destroy();
 		}
+      return 0; // not sure yet how to calculate file size
 	}
 	
 	public void run() {
