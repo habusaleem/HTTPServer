@@ -20,14 +20,15 @@ public class HttpFile implements HttpProcessor {
 			throw new HttpException (HTTP.STATUS_FORBIDDEN, in.getPath());
 	}
 	
-	public void processRequest (HttpOutputStream out) throws IOException {
+   // return size of file processed in bytes
+	public long processRequest (HttpOutputStream out) throws IOException {
 		out.setHeader("Content-type", HTTP.guessMimeType(file.getName()));
 		out.setHeader("Content-length", String.valueOf(file.length()));
 		if (out.sendHeaders()) {
 			FileInputStream in = new FileInputStream (file);
 			out.write(in);
 			in.close();
-			
 		}
+      return file.length();
 	}
 }

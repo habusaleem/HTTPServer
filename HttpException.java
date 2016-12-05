@@ -7,8 +7,12 @@ public class HttpException extends IOException implements HttpProcessor {
 		super (detail);
 		this.code = code;
 	}
+     
+   public int getCode() {
+      return code;
+   }
 	
-	public void processRequest (HttpOutputStream out) throws IOException {
+	public long processRequest (HttpOutputStream out) throws IOException {
 		out.setCode(code);
 		out.setHeader("Content-Type", "text/html");
 		if (out.sendHeaders()) {
@@ -16,6 +20,7 @@ public class HttpException extends IOException implements HttpProcessor {
 			out.write("<HTML><HEAD><TITLE>" + code + " " + msg + "</TITLE></HEAD>\n" + 
 			"<BODY><H1>" + msg + "</H1>\n" + getMessage() + "<P>\n</BODY></HTML>\n");
 		}
+      return -1; // error
 	}
 
 }

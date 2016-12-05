@@ -12,7 +12,8 @@ public class HttpInputStream extends BufferedInputStream {
 		super (in);
 	}
 	
-	public void readRequest () throws IOException {
+   // returns request for logging purposes
+	public String readRequest () throws IOException {
 		String request = readLine();
 		if (request == null) {
 			throw new HttpException (HTTP.STATUS_BAD_REQUEST, "Null Query");
@@ -39,6 +40,7 @@ public class HttpInputStream extends BufferedInputStream {
 		if (method == HTTP.METHOD_POST) {
 			readBody();
 		}
+      return request;
 	}
 	
 	protected void parseMethod (String method) throws HttpException {

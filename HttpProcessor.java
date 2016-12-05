@@ -1,5 +1,5 @@
 import java.io.*;
 
 public interface HttpProcessor {
-	public void processRequest (HttpOutputStream out) throws IOException;
+	public long processRequest (HttpOutputStream out) throws IOException;
 }
