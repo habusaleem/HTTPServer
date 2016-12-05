@@ -156,6 +156,9 @@ public class HTTP {
 	
 	// a method to check if a requested document root exists
 	protected static boolean documentRootExists (String path) throws IOException {
+		
+		if (path.equals("/"))
+			return false;
 		// open the config file
 		File documentRoots = new File ("documentRoots.txt");
 		BufferedReader in = new BufferedReader (new FileReader(documentRoots));
