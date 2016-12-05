@@ -9,8 +9,9 @@ public class RedirectException extends HttpException {
 		this.location = location;
 	}
 	
-	public void processRequest (HttpOutputStream out) throws IOException {
+	public long processRequest (HttpOutputStream out) throws IOException {
 		out.setHeader("Location", location);
 		super.processRequest(out);
+      return 0; // not sure what to return
 	}
 }
